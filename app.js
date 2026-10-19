@@ -343,6 +343,14 @@ async function excelImages(buf, sheetName) {
   return out;
 }
 
+// первая колонка листа построчно: [{ name, row }] (row — номер строки Excel)
+function firstColumn(ws) {
+  const rg = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+  const out = [];
+  for (let r = rg.s.r; r <= rg.e.r; r++) out.push({ name: ws[XLSX.utils.encode_cell({ r, c: rg.s.c })]?.v ?? '', row: r + 1 });
+  return out;
+}
+
 $('#bImport').onclick = () => $('#fileXlsx').click();
 $('#fileXlsx').onchange = async e => {
   const f = e.target.files[0];
@@ -359,16 +367,22 @@ $('#fileXlsx').onchange = async e => {
   if (!rows.length) return alert('Лист пуст');
   const headers = Object.keys(rows[0]);
   const map = Object.fromEntries(Object.entries(MATCH).map(([k, re]) => [k, headers.find(h => re.test(h.trim()))]));
-  // файл только с названиями и картинками — просто добавляем фото к существующим SKU
-  if (map.name && !map.price && Object.keys(pics).length) {
-    let n = 0, miss = [];
-    for (const r of rows) {
-      const name = String(r[map.name]).trim().toLowerCase();
-      const img = await picFor(r);
-      if (!name || !img) continue;
-      const hit = state.skus.filter(s => s.name.toLowerCase() === name);
+  // файл только с названиями и картинками — просто добавляем фото к существующим SKU.
+  // Бывает и без строки заголовков: тогда название берём из первой колонки.
+  if (!map.price && Object.keys(pics).length) {
+    const entries = map.name
+      ? rows.map(r => ({ name: r[map.name], row: r.__rowNum__ + 1 }))
+      : firstColumn(wb.Sheets[sheetName]);
+    let n = 0;
+    const miss = [];
+    for (const { name, row } of entries) {
+      const key = String(name).trim().toLowerCase();
+      if (!key || !pics[row]) continue;
+      const hit = state.skus.filter(s => s.name.toLowerCase() === key);
+      if (!hit.length) { miss.push(String(name).trim()); continue; }
+      const img = await shrinkImage(pics[row]);
       hit.forEach(s => { s.image = img; });
-      hit.length ? n++ : miss.push(r[map.name]);
+      n++;
     }
     touch();
     setStatus(`Фото добавлено: ${n}` + (miss.length ? `. Не найдены SKU: ${miss.join(', ')}` : ''), !!miss.length);
