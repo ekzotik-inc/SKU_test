@@ -60,6 +60,8 @@ function normalize(d) {
       id: s.id || i + 1, name: s.name || '', segment: (s.segment || 'MEDIUM').toUpperCase(),
       price: Number(s.price) || 0, company: COMPANIES.includes(s.company) ? s.company : 'OTHERS',
       som: Number(s.som) || 0, change: Number(s.change) || 0, image: s.image || '',
+      brand: s.brand || '', format: s.format || '', active: s.active !== false,
+      order: s.order === '' || s.order == null ? null : Number(s.order), notes: s.notes || '',
     })),
   };
 }
@@ -101,10 +103,11 @@ function render() {
   renderTabs();
   const q = $('#search').value.trim().toLowerCase();
   const fseg = $('#fSeg').value;
-  const list = state.skus.filter(s => (!q || s.name.toLowerCase().includes(q)) && (!fseg || s.segment === fseg));
+  const list = state.skus.filter(s => (showInactive || s.active) &&
+    (!q || (s.name + ' ' + s.brand).toLowerCase().includes(q)) && (!fseg || s.segment === fseg));
 
   const totals = Object.fromEntries(COMPANIES.map(c => [c, { som: 0, n: 0 }]));
-  state.skus.forEach(s => { totals[s.company].som += s.som; totals[s.company].n++; });
+  state.skus.filter(s => s.active).forEach(s => { totals[s.company].som += s.som; totals[s.company].n++; });
   const max = Math.max(1, ...COMPANIES.map(c => totals[c].som));
   $('#kpi').innerHTML = COMPANIES.map(c => `<div class="chip" style="${colorVar(c)}">
     <span class="dot" style="background:var(--c)"></span>
@@ -126,7 +129,7 @@ function render() {
       html += `<td class="price">${p.toLocaleString('ru-RU')}<small>${n} SKU</small></td>`;
       for (const c of COMPANIES) {
         const items = list.filter(s => s.segment === seg && s.price === p && s.company === c)
-          .sort((a, b) => b.som - a.som);
+          .sort(byOrder);
         html += `<td style="${colorVar(c)}"><div class="cell" data-seg="${seg}" data-price="${p}" data-company="${esc(c)}">` +
           items.map(card).join('') +
           `<button class="add-here" title="Добавить SKU сюда">+</button></div></td>`;
@@ -140,10 +143,21 @@ function render() {
   if (dirty) setStatus('Есть несохранённые изменения — нажмите «Сохранить»', true);
 }
 
+// сначала ручной порядок (Display_Order), затем по доле
+const byOrder = (a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || b.som - a.som;
+let showInactive = false;
+$('#bShowInactive').onclick = e => {
+  showInactive = !showInactive;
+  e.target.textContent = showInactive ? '◉ Скрыть неактивные' : '◌ Показать неактивные';
+  render();
+};
+
 function card(s) {
   const ch = Math.abs(s.change) >= 0.005 ? `<span class="${s.change > 0 ? 'up' : 'dn'}">${s.change > 0 ? '▲' : '▼'}${Math.abs(s.change).toFixed(2)}</span>` : '';
   const img = s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy">` : `<div class="ph">${esc(s.name.charAt(0))}</div>`;
-  return `<div class="sku" draggable="true" data-id="${s.id}" style="${colorVar(s.company)}" title="${esc(s.name)} · ${s.price} KZT · SoM ${s.som}%">${img}` +
+  const tip = [s.name, s.brand, s.format, `${s.price} KZT`, `SoM ${s.som}%`, s.notes].filter(Boolean).join(' · ');
+  const note = s.notes ? '<span class="note" title="' + esc(s.notes) + '">!</span>' : '';
+  return `<div class="sku${s.active ? '' : ' off'}" draggable="true" data-id="${s.id}" style="${colorVar(s.company)}" title="${esc(tip)}">${note}${img}` +
     `<div class="nm">${esc(s.name)}</div><div class="som"><b>${s.som.toFixed(2)}%</b>${ch}</div></div>`;
 }
 
@@ -183,9 +197,10 @@ let pendingImage = '';
 
 function openEditor(sku, preset = {}) {
   editing = sku;
-  const v = sku || { name: '', segment: 'MEDIUM', price: '', company: 'BAT', som: 0, change: 0, image: '', ...preset };
+  const v = sku || { name: '', segment: 'MEDIUM', price: '', company: 'BAT', som: 0, change: 0, image: '', brand: '', format: '', order: null, notes: '', active: true, ...preset };
   $('#dlgTitle').textContent = sku ? 'Редактировать SKU' : 'Новый SKU';
-  for (const k of ['name', 'segment', 'price', 'company', 'som', 'change', 'image']) form.elements[k].value = v[k] ?? '';
+  for (const k of ['name', 'segment', 'price', 'company', 'som', 'change', 'image', 'brand', 'format', 'order', 'notes']) form.elements[k].value = v[k] ?? '';
+  form.elements.active.checked = v.active !== false;
   form.elements.imageFile.value = '';
   pendingImage = v.image || '';
   $('#preview').src = pendingImage;
@@ -212,6 +227,8 @@ form.addEventListener('submit', () => {
   const v = {
     name: f.name.value.trim(), segment: f.segment.value, price: Number(f.price.value),
     company: f.company.value, som: Number(f.som.value) || 0, change: Number(f.change.value) || 0, image: pendingImage,
+    brand: f.brand.value.trim(), format: f.format.value.trim(), notes: f.notes.value.trim(), active: f.active.checked,
+    order: f.order.value === '' ? null : Number(f.order.value),
   };
   if (editing) Object.assign(editing, v);
   else state.skus.push({ id: Math.max(0, ...state.skus.map(s => s.id)) + 1, ...v });
@@ -235,8 +252,17 @@ function shrinkImage(file) {
 }
 
 // ---------- Excel ----------
-const COLS = [['name', 'Family/SKU'], ['segment', 'Segment'], ['price', 'Price'], ['company', 'Company'], ['som', 'SoM YTD (Nielsen)'], ['change', 'Point Change']];
-const MATCH = { name: /sku|family|бренд|назв/i, segment: /seg|сегм/i, price: /price|цен/i, company: /comp|компан|manuf/i, som: /som|share|доля/i, change: /change|point|измен/i };
+// формат SKU_Master: SoM_YTD в долях (0.06 = 6%), изменение — в п.п.
+const COLS = [['company', 'Company'], ['brand', 'Brand'], ['name', 'SKU_Name'], ['price', 'Price_KZT'], ['segment', 'Price_Segment'],
+  ['format', 'Pack_Format'], ['som', 'SoM_YTD'], ['change', 'SoM_Change_pp'], ['image', 'Photo_URL'], ['active', 'Active'],
+  ['order', 'Display_Order'], ['notes', 'Notes']];
+// подходит и старый формат (Family/SKU, Segment, Price, SoM YTD, Point Change)
+const MATCH = {
+  name: /^(sku_?name|family\/?sku|sku|name|название)\s*$/i, segment: /segment|сегм/i, price: /^(price_kzt|price|цена)\b/i,
+  company: /^(company|компания|manufacturer)/i, som: /^som(?!.*change)|share|доля/i, change: /change|point|измен/i,
+  brand: /^brand|бренд/i, format: /format|формат/i, active: /^active|актив/i, order: /order|порядок/i,
+  notes: /^notes?$|примеч|коммент/i, image: /photo_url|^photo|фото/i,
+};
 
 $('#bImport').onclick = () => $('#fileXlsx').click();
 $('#fileXlsx').onchange = async e => {
@@ -247,28 +273,43 @@ $('#fileXlsx').onchange = async e => {
   const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames.find(n => /sku/i.test(n)) || wb.SheetNames[0]], { defval: '' });
   if (!rows.length) return alert('Лист пуст');
   const headers = Object.keys(rows[0]);
-  const map = Object.fromEntries(Object.entries(MATCH).map(([k, re]) => [k, headers.find(h => re.test(h))]));
+  const map = Object.fromEntries(Object.entries(MATCH).map(([k, re]) => [k, headers.find(h => re.test(h.trim()))]));
   if (!map.name || !map.price) return alert('Не найдены колонки с названием SKU и ценой.\nОжидаются: ' + COLS.map(c => c[1]).join(', '));
-  const imported = rows.filter(r => String(r[map.name]).trim()).map(r => {
-    let c = String(r[map.company] || '').trim().toUpperCase().replace(/^KTG$/, 'KT&G');
-    return {
-      name: String(r[map.name]).trim(), segment: String(r[map.segment] || 'MEDIUM').trim().toUpperCase(),
-      price: Number(r[map.price]) || 0, company: COMPANIES.includes(c) ? c : 'OTHERS',
-      som: Number(r[map.som]) || 0, change: Number(r[map.change]) || 0,
+  const val = (r, k) => map[k] ? r[map[k]] : '';
+  let imported = rows.filter(r => String(val(r, 'name')).trim() && Number(val(r, 'price'))).map(r => {
+    const c = String(val(r, 'company')).trim().toUpperCase().replace(/^KTG$/, 'KT&G');
+    const order = val(r, 'order');
+    const s = {
+      name: String(val(r, 'name')).trim(), segment: String(val(r, 'segment') || 'MEDIUM').trim().toUpperCase(),
+      price: Number(val(r, 'price')) || 0, company: COMPANIES.includes(c) ? c : 'OTHERS',
+      som: Number(val(r, 'som')) || 0, change: Number(val(r, 'change')) || 0,
+      active: !/^(no|нет|false|0)$/i.test(String(val(r, 'active')).trim()),
+      order: order === '' ? null : Number(order),
     };
+    for (const k of ['brand', 'format', 'notes', 'image']) if (String(val(r, k)).trim()) s[k] = String(val(r, k)).trim();
+    return s;
   });
+  if (!imported.length) return alert('Не найдено строк с названием и ценой. Если в файле формулы со ссылками на другую книгу — откройте его в Excel, пересчитайте и сохраните.');
+  // доли в файле могут быть в долях единицы (0.06) — переводим в проценты
+  if (Math.max(...imported.map(s => s.som)) <= 1) imported.forEach(s => { s.som = +(s.som * 100).toFixed(4); });
   const replace = confirm(`Найдено ${imported.length} SKU.\nОК — заменить весь список.\nОтмена — обновить совпадающие по названию и добавить новые (фото сохранятся).`);
-  if (replace) state.skus = [];
+  if (replace) {
+    const photos = Object.fromEntries(state.skus.filter(s => s.image).map(s => [s.name.toLowerCase(), s.image]));
+    imported.forEach(s => { s.image = s.image || photos[s.name.toLowerCase()] || ''; });
+    state.skus = [];
+  }
   let id = Math.max(0, ...state.skus.map(s => s.id));
   for (const s of imported) {
     const ex = state.skus.find(x => x.name.toLowerCase() === s.name.toLowerCase());
-    if (ex) Object.assign(ex, s); else state.skus.push({ id: ++id, image: '', ...s });
+    if (ex) Object.assign(ex, s);
+    else state.skus.push(normalize({ skus: [{ id: ++id, image: '', ...s }] }).skus[0]);
   }
   touch();
 };
 
 $('#bExport').onclick = () => {
-  const data = state.skus.map(s => Object.fromEntries(COLS.map(([k, h]) => [h, s[k]])));
+  const data = state.skus.map(s => Object.fromEntries(COLS.map(([k, h]) => [h,
+    k === 'som' ? +(s.som / 100).toFixed(6) : k === 'active' ? (s.active ? 'Yes' : 'No') : s[k] ?? ''])));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'SKU_Master');
   XLSX.writeFile(wb, 'brand_board.xlsx');
@@ -279,8 +320,6 @@ $('#bJson').onclick = () => {
   a.download = 'board.json';
   a.click();
 };
-$('#bPrint').onclick = () => print();
-
 // ---------- тема ----------
 $('#bTheme').onclick = () => {
   const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -288,28 +327,75 @@ $('#bTheme').onclick = () => {
   try { localStorage.setItem('bb-theme', t); } catch {}
 };
 
-// ---------- PNG ----------
-// снимаем борд целиком (с заголовком и долями), без кнопок «+»
-$('#bPng').onclick = async () => {
+// ---------- лист для PNG и печати ----------
+// Собираем компактную копию борда и подбираем ширину так, чтобы пропорции совпали
+// с альбомным листом: тогда всё помещается на одну страницу без обрезки.
+function buildSheet(ratio) {
   const table = $('#board table');
-  if (!table) return setStatus('Борд пуст');
-  setStatus('Готовлю картинку…', true);
-  const wrap = document.createElement('div');
-  wrap.className = 'png-export';
-  wrap.innerHTML = `<div class="png-head"><h1>CC Brand Board</h1><div>${esc(state.period)}</div></div>`;
-  wrap.append($('#kpi').cloneNode(true), table.cloneNode(true));
-  wrap.querySelectorAll('.add-here').forEach(b => b.remove());
-  document.body.append(wrap);
+  if (!table) return null;
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.innerHTML = `<div class="sheet-head"><div><h1>CC Brand Board</h1><div class="per">${esc(state.period)}</div></div></div>`;
+  sheet.firstChild.append($('#kpi').cloneNode(true));
+  sheet.append(table.cloneNode(true));
+  sheet.querySelectorAll('.add-here').forEach(b => b.remove());
+  document.body.append(sheet);
+  let w = 900;
+  for (; w < 8000; w += 50) {
+    sheet.style.width = w + 'px';
+    if (sheet.offsetHeight * ratio <= w) break;
+  }
+  // добиваем высоту до пропорции листа, чтобы картинка была ровно «страницей»
+  sheet.style.height = Math.round(w / ratio) + 'px';
+  return { sheet, w };
+}
+
+// отрисовка листа в PNG (data URL) — одна и та же картинка для скачивания и печати
+async function sheetPng(ratio) {
+  const r = buildSheet(ratio);
+  if (!r) throw new Error('Борд пуст');
   try {
-    const bg = getComputedStyle(document.body).backgroundColor;
-    const url = await htmlToImage.toPng(wrap, { pixelRatio: 2, backgroundColor: bg, cacheBust: true, style: { left: '0', top: '0', position: 'static' } });
+    // ~3500px по ширине — читаемо в мессенджере и при печати 300 dpi
+    return await htmlToImage.toPng(r.sheet, { pixelRatio: Math.max(1, 3508 / r.w),
+      backgroundColor: getComputedStyle(document.body).backgroundColor, cacheBust: true,
+      style: { left: '0', top: '0', position: 'static' } });
+  } finally { r.sheet.remove(); }
+}
+
+$('#bPng').onclick = async () => {
+  setStatus('Готовлю картинку…', true);
+  try {
+    const url = await sheetPng(Math.SQRT2);
     const a = Object.assign(document.createElement('a'), { href: url, download: `brand_board_${new Date().toISOString().slice(0, 10)}.png` });
     a.click();
     setStatus('Картинка сохранена');
   } catch (e) {
     setStatus('Не удалось сделать картинку: ' + (e.message || e));
-  } finally { wrap.remove(); }
+  }
 };
+
+// печатная область альбомного листа при полях 6 мм
+const PAGES = { A4: [285, 198], A3: [408, 285] };
+async function printSheet(size) {
+  const [pw, ph] = PAGES[size];
+  setStatus('Готовлю лист для печати…', true);
+  let url;
+  try { url = await sheetPng(pw / ph); } catch (e) { return setStatus('Не удалось подготовить печать: ' + (e.message || e)); }
+  const img = Object.assign(document.createElement('img'), { className: 'print-img', src: url });
+  img.style.cssText = `width:${pw}mm;height:${ph}mm`;
+  const pageStyle = document.createElement('style');
+  pageStyle.textContent = `@page{size:${size} landscape;margin:6mm}`;
+  document.head.append(pageStyle);
+  document.body.append(img);
+  document.body.classList.add('printing');
+  await img.decode();
+  setStatus('');
+  const done = () => { document.body.classList.remove('printing'); img.remove(); pageStyle.remove(); };
+  window.addEventListener('afterprint', done, { once: true });
+  print();
+}
+$('#bPrint').onclick = () => printSheet('A4');
+$('#bPrintA3').onclick = () => printSheet('A3');
 
 // ---------- сохранение в GitHub ----------
 const ghDlg = $('#ghDlg'), ghForm = $('#ghForm');

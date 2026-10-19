@@ -123,19 +123,38 @@ input[type=file]{padding:7px}
   .tools{margin-left:0;width:100%}.search,.search input{width:100%}
   .form{grid-template-columns:1fr}
 }
-@media print{
-  .tools,.toast,.add-here,.kpi{display:none!important}
-  .top{position:static;border:0}
-  .board{overflow:visible;padding:0}
-  table.bb{box-shadow:none}
-  @page{size:A3 landscape;margin:8mm}
-}
+/* лист для PNG и печати: компактная копия борда вне экрана */
+.sheet{position:fixed;left:-20000px;top:0;padding:18px;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.sheet-head{display:flex;align-items:center;gap:16px}
+.sheet-head h1{margin:0;font-size:20px;white-space:nowrap}
+.sheet-head .per{color:var(--muted);font-size:12px;white-space:nowrap}
+.sheet .kpi{padding:0;margin-left:auto;overflow:visible}
+.sheet .kpi .chip{min-width:110px;padding:5px 10px}
+.sheet .kpi b{font-size:14px}
+.sheet table.bb{min-width:0;box-shadow:none;border:1px solid var(--line)}
+.sheet .bb th{position:static;padding:6px 8px;font-size:12px}
+.sheet .bb th.co{font-size:13px}
+.sheet .bb th:first-child{width:22px}.sheet .bb th:nth-child(2){width:58px}
+.sheet .bb td{padding:4px}
+.sheet .bb td.price{width:auto;padding-top:6px;font-size:12px}
+.sheet .bb td.seg span{position:static;margin:6px auto;font-size:9px;letter-spacing:2px}
+.sheet .cell{gap:4px;min-height:0}
+.sheet .sku{width:76px;padding:4px 3px;font-size:8.5px;border-radius:7px;cursor:default}
+.sheet .sku img,.sheet .sku .ph{width:30px;height:40px;margin-bottom:3px;font-size:13px;border-radius:4px}
+.sheet .sku .nm{min-height:0}
+.sheet .sku .som{font-size:8px;margin-top:3px;gap:3px}
+.sheet .sku .note{display:none}
 
-/* экспорт в PNG: отрисовка вне экрана */
-.png-export{position:fixed;left:-10000px;top:0;width:1600px;padding:24px;background:var(--bg);color:var(--ink)}
-.png-export .png-head{margin-bottom:12px}
-.png-export .png-head h1{margin:0;font-size:22px}
-.png-export .png-head div{color:var(--muted)}
-.png-export .kpi{padding:0 0 12px}
-.png-export .bb th{position:static}
-.png-export td.seg span{position:static}
+/* отметки на карточках */
+.sku .note{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
+.sku.off{opacity:.45;border-style:dashed}
+.form label.check{display:flex;align-items:center;gap:8px;grid-column:1/-1;color:var(--ink)}
+.form label.wide{grid-column:1/-1}
+
+.print-img{display:none}
+@media print{
+  body.printing{margin:0;background:none}
+  body.printing #app,body.printing #login,body.printing dialog{display:none!important}
+  body.printing .print-img{display:block}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
