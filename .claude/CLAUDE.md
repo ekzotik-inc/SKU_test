@@ -11,5 +11,5 @@ Static site on GitHub Pages (branch `main`, root). No build step, no server.
 
 ## Checking changes
 Serve with `python3 -m http.server`, open in Playwright, log in, check the board renders without console errors.
-PNG and print share one renderer (`buildSheet` + `sheetPng`): the board is fitted to a landscape page ratio, print = that PNG on one A4/A3 page.
+PNG and print share one renderer (`sheetHTML` + `buildSheet` + `sheetPng`): a dense slide-style layout (always light theme), narrowest width that fits the page ratio. PNG = 16:9, 3840×2160; print = that image on one A4/A3 page.
 After push, Pages redeploys in ~1–2 min at https://ekzotik-inc.github.io/SKU_test/

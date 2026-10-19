@@ -98,13 +98,18 @@ $('#segTabs').onclick = e => {
   render();
 };
 
+function visibleList() {
+  const q = $('#search').value.trim().toLowerCase();
+  const fseg = $('#fSeg').value;
+  return state.skus.filter(s => (showInactive || s.active) &&
+    (!q || (s.name + ' ' + s.brand).toLowerCase().includes(q)) && (!fseg || s.segment === fseg));
+}
+
 function render() {
   $('#period').value = state.period;
   renderTabs();
-  const q = $('#search').value.trim().toLowerCase();
   const fseg = $('#fSeg').value;
-  const list = state.skus.filter(s => (showInactive || s.active) &&
-    (!q || (s.name + ' ' + s.brand).toLowerCase().includes(q)) && (!fseg || s.segment === fseg));
+  const list = visibleList();
 
   const totals = Object.fromEntries(COMPANIES.map(c => [c, { som: 0, n: 0 }]));
   state.skus.filter(s => s.active).forEach(s => { totals[s.company].som += s.som; totals[s.company].n++; });
@@ -328,44 +333,87 @@ $('#bTheme').onclick = () => {
 };
 
 // ---------- лист для PNG и печати ----------
-// Собираем компактную копию борда и подбираем ширину так, чтобы пропорции совпали
-// с альбомным листом: тогда всё помещается на одну страницу без обрезки.
+// Отдельная плотная вёрстка «как слайд»: пачки без рамок, доля и изменение под пачкой,
+// итоги по компаниям и сегментам. Ширина колонок — по самому длинному ряду компании,
+// общая ширина подбирается под пропорцию листа, свободная высота уходит в строки.
+const fmtCh = v => {
+  const r = Math.round(v * 10) / 10 || 0;
+  return `<i class="${r > 0 ? 'up' : r < 0 ? 'dn' : ''}">(${r > 0 ? '+' : ''}${r.toFixed(1)})</i>`;
+};
+
+function sheetHTML(list) {
+  const active = list.filter(s => s.active);
+  const sum = (arr, k) => arr.reduce((t, s) => t + s[k], 0);
+  const segs = SEGMENTS.filter(seg => list.some(s => s.segment === seg));
+  const rows = segs.map(seg => ({ seg, prices: [...new Set(list.filter(s => s.segment === seg).map(s => s.price))].sort((a, b) => b - a) }));
+  const cellOf = (seg, p, c) => list.filter(s => s.segment === seg && s.price === p && s.company === c).sort(byOrder);
+  // вес колонки = самый длинный ряд пачек у компании (минимум 3, чтобы влезла шапка)
+  const weight = Object.fromEntries(COMPANIES.map(c => [c, Math.max(3, ...rows.flatMap(r => r.prices.map(p => cellOf(r.seg, p, c).length)))]));
+  const totalW = COMPANIES.reduce((t, c) => t + weight[c], 0);
+
+  let h = `<div class="sh-title"><h1>CC Brand Board</h1><span>${esc(state.period)}</span></div>`;
+  h += '<table class="sh"><colgroup><col class="c-seg"><col class="c-price">' +
+    COMPANIES.map(c => `<col style="width:${(weight[c] / totalW * 100).toFixed(2)}%">`).join('') + '</colgroup>';
+  h += '<thead><tr><th class="sh-kzt" colspan="2">KZT / pack</th>' + COMPANIES.map(c => {
+    const a = active.filter(s => s.company === c);
+    return `<th style="${colorVar(c)}"><b>${esc(c)}</b><span class="big">${sum(a, 'som').toFixed(1)}%</span>${fmtCh(sum(a, 'change'))}</th>`;
+  }).join('') + '</tr></thead><tbody>';
+  for (const { seg, prices } of rows) {
+    const a = active.filter(s => s.segment === seg);
+    prices.forEach((p, i) => {
+      h += `<tr class="${i === 0 ? 'first' : ''}">`;
+      if (i === 0) h += `<td class="sh-seg" style="--c:var(--${seg})" rowspan="${prices.length}"><div><b>${seg}</b> ${sum(a, 'som').toFixed(1)}% ${fmtCh(sum(a, 'change'))}</div></td>`;
+      h += `<td class="sh-price">${p}</td>`;
+      for (const c of COMPANIES) {
+        h += `<td style="${colorVar(c)}"><div class="sh-cell">` + cellOf(seg, p, c).map(s => {
+          const img = s.image ? `<img src="${esc(s.image)}" alt="">` : `<span class="ph">${esc((s.brand || s.name).charAt(0))}</span>`;
+          return `<div class="pk${s.active ? '' : ' off'}">${img}<div class="tx"><div class="nm">${esc(s.name)}</div>` +
+            `<div class="v">${s.som.toFixed(1)}% ${fmtCh(s.change)}</div></div></div>`;
+        }).join('') + '</div></td>';
+      }
+      h += '</tr>';
+    });
+  }
+  return h + '</tbody></table>';
+}
+
 function buildSheet(ratio) {
-  const table = $('#board table');
-  if (!table) return null;
+  const list = visibleList();
+  if (!list.length) return null;
   const sheet = document.createElement('div');
   sheet.className = 'sheet';
-  sheet.innerHTML = `<div class="sheet-head"><div><h1>CC Brand Board</h1><div class="per">${esc(state.period)}</div></div></div>`;
-  sheet.firstChild.append($('#kpi').cloneNode(true));
-  sheet.append(table.cloneNode(true));
-  sheet.querySelectorAll('.add-here').forEach(b => b.remove());
+  sheet.innerHTML = sheetHTML(list);
   document.body.append(sheet);
-  let w = 900;
-  for (; w < 8000; w += 50) {
+  // самая узкая ширина, при которой всё помещается в пропорцию листа
+  let w = 300;
+  for (; w < 8000; w += 10) {
     sheet.style.width = w + 'px';
-    if (sheet.offsetHeight * ratio <= w) break;
+    if (sheet.scrollHeight * ratio <= w) break;
   }
-  // добиваем высоту до пропорции листа, чтобы картинка была ровно «страницей»
+  // добиваем высоту до пропорции листа: лишнее место равномерно уходит в строки
   sheet.style.height = Math.round(w / ratio) + 'px';
   return { sheet, w };
 }
 
 // отрисовка листа в PNG (data URL) — одна и та же картинка для скачивания и печати
 async function sheetPng(ratio) {
+  // для слайдов и печати всегда светлая тема
+  const theme = document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme = 'light';
   const r = buildSheet(ratio);
-  if (!r) throw new Error('Борд пуст');
+  if (!r) { document.documentElement.dataset.theme = theme; throw new Error('Борд пуст'); }
   try {
-    // ~3500px по ширине — читаемо в мессенджере и при печати 300 dpi
-    return await htmlToImage.toPng(r.sheet, { pixelRatio: Math.max(1, 3508 / r.w),
+    // 3840px по ширине (4K): чётко на слайде и при печати
+    return await htmlToImage.toPng(r.sheet, { pixelRatio: Math.max(1, 3840 / r.w),
       backgroundColor: getComputedStyle(document.body).backgroundColor, cacheBust: true,
       style: { left: '0', top: '0', position: 'static' } });
-  } finally { r.sheet.remove(); }
+  } finally { r.sheet.remove(); document.documentElement.dataset.theme = theme; }
 }
 
 $('#bPng').onclick = async () => {
   setStatus('Готовлю картинку…', true);
   try {
-    const url = await sheetPng(Math.SQRT2);
+    const url = await sheetPng(16 / 9);
     const a = Object.assign(document.createElement('a'), { href: url, download: `brand_board_${new Date().toISOString().slice(0, 10)}.png` });
     a.click();
     setStatus('Картинка сохранена');
