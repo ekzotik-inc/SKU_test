@@ -60,6 +60,11 @@ const BRAND_RULES = [[/^parliament/, 'Parliament'], [/^marlboro/, 'Marlboro'], [
   [/^lucky/, 'Lucky Strike'], [/^davidoff/, 'Davidoff'], [/^west/, 'West']];
 const guessBrand = name => BRAND_RULES.find(([re]) => re.test(name.toLowerCase().trim()))?.[1] || '';
 
+// логотип компании, а пока его нет — аккуратная надпись в цвете компании
+const logoHTML = c => state.logos?.[c]
+  ? `<img class="co-logo" src="${esc(state.logos[c])}" alt="${esc(c)}">`
+  : `<span class="co-word">${esc(c)}</span>`;
+
 // доли brand family внутри компании, по убыванию
 function families(skus, company) {
   const m = {};
@@ -75,6 +80,7 @@ function normalize(d) {
   const skus = Array.isArray(d) ? d : d.skus || [];
   return {
     period: d.period || 'Retail Prices, Market Shares YTD',
+    logos: d.logos || {},
     skus: skus.map((s, i) => ({
       id: s.id || i + 1, name: s.name || '', segment: (s.segment || 'MEDIUM').toUpperCase(),
       price: Number(s.price) || 0, company: COMPANIES.includes(s.company) ? s.company : 'OTHERS',
@@ -134,12 +140,13 @@ function render() {
   state.skus.filter(s => s.active).forEach(s => { totals[s.company].som += s.som; totals[s.company].n++; });
   const max = Math.max(1, ...COMPANIES.map(c => totals[c].som));
   $('#kpi').innerHTML = COMPANIES.map(c => `<div class="chip" style="${colorVar(c)}">
-    <span class="dot" style="background:var(--c)"></span>
+    ${state.logos[c] ? `<img class="kpi-logo" src="${esc(state.logos[c])}" alt="">` : '<span class="dot" style="background:var(--c)"></span>'}
     <div style="flex:1"><small>${esc(c)} · ${totals[c].n} SKU</small><b>${totals[c].som.toFixed(1)}%</b>
     <div class="meter"><i style="width:${totals[c].som / max * 100}%;background:var(--c)"></i></div></div></div>`).join('');
 
   let html = '<table class="bb"><thead><tr><th></th><th style="text-align:right">KZT</th>' +
-    COMPANIES.map(c => `<th class="co" style="${colorVar(c)}">${esc(c)}<small>SoM ${totals[c].som.toFixed(1)}%</small>` +
+    COMPANIES.map(c => `<th class="co" style="${colorVar(c)}"><span class="logo-pick" data-co="${esc(c)}" title="Нажмите, чтобы загрузить логотип ${esc(c)}">${logoHTML(c)}` +
+      (state.logos[c] ? `<button class="logo-del" data-co="${esc(c)}" title="Убрать логотип">×</button>` : '') + `</span><small>SoM ${totals[c].som.toFixed(1)}%</small>` +
       `<div class="fams">${families(state.skus, c).map(f => `<span title="${esc(f.brand)}: ${f.som.toFixed(2)}% (${f.change >= 0 ? '+' : ''}${f.change.toFixed(2)} п.п.)">${esc(f.brand)} <b>${f.som.toFixed(1)}%</b></span>`).join('')}</div></th>`).join('') +
     '</tr></thead><tbody>';
 
@@ -187,7 +194,26 @@ function card(s) {
 }
 
 // клики и перетаскивание
+// логотипы компаний: клик по месту логотипа в шапке колонки
+const logoInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', hidden: true });
+document.body.append(logoInput);
+let logoFor = null;
+logoInput.onchange = async () => {
+  const f = logoInput.files[0];
+  logoInput.value = '';
+  if (!f || !logoFor) return;
+  state.logos[logoFor] = await shrinkImage(f, { maxH: 160, png: true });
+  touch();
+};
+
 $('#board').addEventListener('click', e => {
+  const del = e.target.closest('.logo-del');
+  if (del) {
+    if (confirm(`Убрать логотип ${del.dataset.co}?`)) { delete state.logos[del.dataset.co]; touch(); }
+    return;
+  }
+  const pick = e.target.closest('.logo-pick');
+  if (pick) { logoFor = pick.dataset.co; logoInput.click(); return; }
   const sku = e.target.closest('.sku');
   if (sku) return openEditor(state.skus.find(s => s.id == sku.dataset.id));
   if (e.target.classList.contains('add-here')) {
@@ -262,7 +288,7 @@ form.addEventListener('submit', () => {
 
 // обрезаем пустые (белые/прозрачные) поля и уменьшаем фото до ~240px по высоте,
 // чтобы пачка занимала всю карточку, а репозиторий не разрастался
-function shrinkImage(file) {
+function shrinkImage(file, { maxH = 240, png = false } = {}) {
   return new Promise((res, rej) => {
     const img = new Image();
     img.onload = () => {
@@ -282,13 +308,15 @@ function shrinkImage(file) {
       }
       if (x1 < 0) { x0 = 0; y0 = 0; x1 = sw - 1; y1 = sh - 1; }
       const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
-      const h = Math.min(240, ch), w = Math.round(cw * h / ch);
+      const h = Math.min(maxH, ch), w = Math.round(cw * h / ch);
       const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
       const ctx = c.getContext('2d');
-      ctx.fillStyle = '#fff'; // прозрачный фон PNG иначе станет чёрным в JPEG
-      ctx.fillRect(0, 0, w, h);
+      if (!png) {
+        ctx.fillStyle = '#fff'; // прозрачный фон PNG иначе станет чёрным в JPEG
+        ctx.fillRect(0, 0, w, h);
+      }
       ctx.drawImage(src, x0, y0, cw, ch, 0, 0, w, h);
-      res(c.toDataURL('image/jpeg', 0.85));
+      res(png ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.85));
     };
     img.onerror = rej;
     img.src = URL.createObjectURL(file);
@@ -489,7 +517,7 @@ function sheetHTML(list) {
   h += '<thead><tr><th class="sh-kzt" colspan="2">KZT / pack</th>' + COMPANIES.map(c => {
     const a = active.filter(s => s.company === c);
     const fam = families(active, c).map(f => `<span>${esc(f.brand)} <b>${f.som.toFixed(1)}%</b> ${fmtCh(f.change)}</span>`).join('');
-    return `<th style="${colorVar(c)}"><b>${esc(c)}</b><span class="big">${sum(a, 'som').toFixed(1)}%</span>${fmtCh(sum(a, 'change'))}` +
+    return `<th style="${colorVar(c)}"><div class="sh-co">${logoHTML(c)}</div><span class="big">${sum(a, 'som').toFixed(1)}%</span>${fmtCh(sum(a, 'change'))}` +
       `<div class="sh-fams">${fam}</div></th>`;
   }).join('') + '</tr></thead><tbody>';
   for (const { seg, prices } of rows) {
@@ -622,6 +650,13 @@ async function saveToGitHub(cfg) {
       const path = `images/sku-${s.id}-${Date.now()}.jpg`;
       await putFile(cfg, path, s.image.split(',')[1], `Фото SKU: ${s.name}`);
       s.image = path;
+    }
+    for (const [c, url] of Object.entries(state.logos)) {
+      if (!url.startsWith('data:image')) continue;
+      setStatus(`Загрузка логотипа: ${c}…`, true);
+      const path = `images/logos/${c.toLowerCase().replace(/[^a-z0-9]+/g, '')}-${Date.now()}.png`;
+      await putFile(cfg, path, url.split(',')[1], `Логотип ${c}`);
+      state.logos[c] = path;
     }
     setStatus('Сохранение data/board.json…', true);
     await putFile(cfg, 'data/board.json', utf8b64(JSON.stringify(state, null, 1) + '\n'), 'Обновление Brand Board');

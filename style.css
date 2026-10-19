@@ -173,3 +173,17 @@ table.sh{flex:1;width:100%;border-collapse:collapse;table-layout:fixed}
   body.printing .print-img{display:block}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* логотипы компаний */
+.logo-pick{position:relative;display:inline-flex;align-items:center;height:34px;cursor:pointer;border-radius:8px;margin:-2px 0 2px -4px;padding:0 4px}
+.logo-pick:hover{background:var(--soft)}
+.co-logo{max-height:30px;max-width:130px;object-fit:contain;display:block}
+.co-word{font-size:20px;font-weight:800;letter-spacing:.5px;color:var(--c)}
+.logo-del{position:absolute;top:-6px;right:-10px;width:18px;height:18px;padding:0;border-radius:50%;font-size:12px;line-height:1;display:none}
+.logo-pick:hover .logo-del{display:block}
+.sh-co{height:22px;display:flex;align-items:center;margin-bottom:2px}
+.sh-co .co-logo{max-height:20px;max-width:90px}
+.sh-co .co-word{font-size:15px}
+:root[data-theme=dark] .co-logo{background:#fff;border-radius:4px;padding:2px 4px}
+.kpi .kpi-logo{height:24px;max-width:56px;object-fit:contain;flex:none}
+:root[data-theme=dark] .kpi .kpi-logo{background:#fff;border-radius:4px;padding:2px}

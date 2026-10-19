@@ -7,6 +7,7 @@ Static site on GitHub Pages (branch `main`, root). No build step, no server.
 - Excel import also pulls pictures (in-cell richData and floating drawings, via JSZip `excelImages`), trims margins and attaches them by row; a file with only name + picture columns just adds photos to existing SKUs; files without a header row use column A as the name
 - `SKU/` — source Excel files with pack photos per brand (name + picture); already imported into `images/`
 - Companies: BAT, JTI, KT&G, PMI, OTHERS. Segments: PREMIUM, MEDIUM, LOW
+- Company logos: `state.logos` {company: path}, uploaded by clicking the header logo spot, saved to `images/logos/`; without a logo a coloured wordmark is shown
 - Brand family = `brand`; empty brand is guessed from the name (`BRAND_RULES`). Family shares (sum of SoM/change per brand within company) show in board headers and the PNG sheet
 - Login is a client-side SHA-256 check of `login:password` (`AUTH_HASH` in app.js) — UI gate only
 - UI text is in Russian
