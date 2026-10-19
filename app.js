@@ -52,6 +52,25 @@ async function start() {
   render();
 }
 
+// бренд (brand family) по названию SKU, если в данных он не указан
+const BRAND_RULES = [[/^parliament/, 'Parliament'], [/^marlboro/, 'Marlboro'], [/^l&m/, 'L&M'], [/^philip morris/, 'Philip Morris'],
+  [/^delia/, 'Delia'], [/^terea/, 'TEREA'], [/edition/, 'Richmond'], [/^sobranie/, 'Sobranie'], [/^camel/, 'Camel'],
+  [/^winston|^caster/, 'Winston'], [/^sovereign/, 'Sovereign'], [/^ld$/, 'LD'], [/^kiss/, 'Kiss'], [/^bohem/, 'Bohem'],
+  [/^esse/, 'ESSE'], [/^raison/, 'Raison'], [/^dunhill/, 'Dunhill'], [/^kent|^crystal/, 'Kent'], [/^rothmans/, 'Rothmans'],
+  [/^lucky/, 'Lucky Strike'], [/^davidoff/, 'Davidoff'], [/^west/, 'West']];
+const guessBrand = name => BRAND_RULES.find(([re]) => re.test(name.toLowerCase().trim()))?.[1] || '';
+
+// доли brand family внутри компании, по убыванию
+function families(skus, company) {
+  const m = {};
+  for (const s of skus) {
+    if (s.company !== company || !s.active || !s.brand) continue;
+    (m[s.brand] ??= { brand: s.brand, som: 0, change: 0 }).som += s.som;
+    m[s.brand].change += s.change;
+  }
+  return Object.values(m).sort((a, b) => b.som - a.som);
+}
+
 function normalize(d) {
   const skus = Array.isArray(d) ? d : d.skus || [];
   return {
@@ -60,7 +79,7 @@ function normalize(d) {
       id: s.id || i + 1, name: s.name || '', segment: (s.segment || 'MEDIUM').toUpperCase(),
       price: Number(s.price) || 0, company: COMPANIES.includes(s.company) ? s.company : 'OTHERS',
       som: Number(s.som) || 0, change: Number(s.change) || 0, image: s.image || '',
-      brand: s.brand || '', format: s.format || '', active: s.active !== false,
+      brand: s.brand || guessBrand(s.name || ''), format: s.format || '', active: s.active !== false,
       order: s.order === '' || s.order == null ? null : Number(s.order), notes: s.notes || '',
     })),
   };
@@ -120,7 +139,8 @@ function render() {
     <div class="meter"><i style="width:${totals[c].som / max * 100}%;background:var(--c)"></i></div></div></div>`).join('');
 
   let html = '<table class="bb"><thead><tr><th></th><th style="text-align:right">KZT</th>' +
-    COMPANIES.map(c => `<th class="co" style="${colorVar(c)}">${esc(c)}<small>SoM ${totals[c].som.toFixed(1)}%</small></th>`).join('') +
+    COMPANIES.map(c => `<th class="co" style="${colorVar(c)}">${esc(c)}<small>SoM ${totals[c].som.toFixed(1)}%</small>` +
+      `<div class="fams">${families(state.skus, c).map(f => `<span title="${esc(f.brand)}: ${f.som.toFixed(2)}% (${f.change >= 0 ? '+' : ''}${f.change.toFixed(2)} п.п.)">${esc(f.brand)} <b>${f.som.toFixed(1)}%</b></span>`).join('')}</div></th>`).join('') +
     '</tr></thead><tbody>';
 
   for (const seg of SEGMENTS) {
@@ -468,7 +488,9 @@ function sheetHTML(list) {
     COMPANIES.map(c => `<col style="width:${(weight[c] / totalW * 100).toFixed(2)}%">`).join('') + '</colgroup>';
   h += '<thead><tr><th class="sh-kzt" colspan="2">KZT / pack</th>' + COMPANIES.map(c => {
     const a = active.filter(s => s.company === c);
-    return `<th style="${colorVar(c)}"><b>${esc(c)}</b><span class="big">${sum(a, 'som').toFixed(1)}%</span>${fmtCh(sum(a, 'change'))}</th>`;
+    const fam = families(active, c).map(f => `<span>${esc(f.brand)} <b>${f.som.toFixed(1)}%</b> ${fmtCh(f.change)}</span>`).join('');
+    return `<th style="${colorVar(c)}"><b>${esc(c)}</b><span class="big">${sum(a, 'som').toFixed(1)}%</span>${fmtCh(sum(a, 'change'))}` +
+      `<div class="sh-fams">${fam}</div></th>`;
   }).join('') + '</tr></thead><tbody>';
   for (const { seg, prices } of rows) {
     const a = active.filter(s => s.segment === seg);
