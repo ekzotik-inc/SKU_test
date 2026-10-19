@@ -509,17 +509,14 @@ function buildSheet(ratio) {
 
 // отрисовка листа в PNG (data URL) — одна и та же картинка для скачивания и печати
 async function sheetPng(ratio) {
-  // для слайдов и печати всегда светлая тема
-  const theme = document.documentElement.dataset.theme;
-  document.documentElement.dataset.theme = 'light';
   const r = buildSheet(ratio);
-  if (!r) { document.documentElement.dataset.theme = theme; throw new Error('Борд пуст'); }
+  if (!r) throw new Error('Борд пуст');
   try {
     // 3840px по ширине (4K): чётко на слайде и при печати
     return await htmlToImage.toPng(r.sheet, { pixelRatio: Math.max(1, 3840 / r.w),
       backgroundColor: getComputedStyle(document.body).backgroundColor, cacheBust: true,
       style: { left: '0', top: '0', position: 'static' } });
-  } finally { r.sheet.remove(); document.documentElement.dataset.theme = theme; }
+  } finally { r.sheet.remove(); }
 }
 
 $('#bPng').onclick = async () => {
