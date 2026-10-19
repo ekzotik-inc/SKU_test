@@ -281,6 +281,36 @@ $('#bJson').onclick = () => {
 };
 $('#bPrint').onclick = () => print();
 
+// ---------- тема ----------
+$('#bTheme').onclick = () => {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('bb-theme', t); } catch {}
+};
+
+// ---------- PNG ----------
+// снимаем борд целиком (с заголовком и долями), без кнопок «+»
+$('#bPng').onclick = async () => {
+  const table = $('#board table');
+  if (!table) return setStatus('Борд пуст');
+  setStatus('Готовлю картинку…', true);
+  const wrap = document.createElement('div');
+  wrap.className = 'png-export';
+  wrap.innerHTML = `<div class="png-head"><h1>CC Brand Board</h1><div>${esc(state.period)}</div></div>`;
+  wrap.append($('#kpi').cloneNode(true), table.cloneNode(true));
+  wrap.querySelectorAll('.add-here').forEach(b => b.remove());
+  document.body.append(wrap);
+  try {
+    const bg = getComputedStyle(document.body).backgroundColor;
+    const url = await htmlToImage.toPng(wrap, { pixelRatio: 2, backgroundColor: bg, cacheBust: true, style: { left: '0', top: '0', position: 'static' } });
+    const a = Object.assign(document.createElement('a'), { href: url, download: `brand_board_${new Date().toISOString().slice(0, 10)}.png` });
+    a.click();
+    setStatus('Картинка сохранена');
+  } catch (e) {
+    setStatus('Не удалось сделать картинку: ' + (e.message || e));
+  } finally { wrap.remove(); }
+};
+
 // ---------- сохранение в GitHub ----------
 const ghDlg = $('#ghDlg'), ghForm = $('#ghForm');
 $('#ghCancel').onclick = () => ghDlg.close();

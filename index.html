@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CC Brand Board</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("bb-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -36,6 +38,8 @@
         <div class="search"><span>⌕</span><input id="search" placeholder="Поиск SKU"></div>
         <div id="segTabs" class="tabs"></div>
         <button id="bAdd" class="primary">＋ SKU</button>
+        <button id="bPng" title="Скачать борд картинкой для мессенджера">🖼 PNG</button>
+        <button id="bTheme" class="theme-btn" title="Светлая / тёмная тема">🌓</button>
         <button id="bSave" class="accent">⇪ Сохранить</button>
         <details class="menu">
           <summary class="btn">⋯</summary>
