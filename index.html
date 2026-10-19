@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CC Brand Board</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Вход -->
+<div id="login" class="login">
+  <form id="loginForm" class="card">
+    <h1>CC Brand Board</h1>
+    <label>Логин<input id="lUser" autocomplete="username" required></label>
+    <label>Пароль<input id="lPass" type="password" autocomplete="current-password" required></label>
+    <div id="lErr" class="err"></div>
+    <button class="primary">Войти</button>
+  </form>
+</div>
+
+<!-- Приложение -->
+<div id="app" hidden>
+  <header class="top">
+    <h1 id="title">CC Brand Board</h1>
+    <input id="period" class="period" title="Период (заголовок борда)">
+    <div class="tools">
+      <input id="search" placeholder="Поиск SKU…">
+      <select id="fSeg"><option value="">Все сегменты</option></select>
+      <button id="bAdd" class="primary">+ SKU</button>
+      <button id="bImport">Импорт Excel</button>
+      <button id="bExport">Экспорт Excel</button>
+      <button id="bJson">Скачать skus.json</button>
+      <button id="bSave">Сохранить в GitHub</button>
+      <button id="bPrint">Печать / PDF</button>
+      <button id="bLogout">Выход</button>
+      <input id="fileXlsx" type="file" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+    <div id="status" class="status"></div>
+  </header>
+  <main id="board" class="board"></main>
+</div>
+
+<!-- Редактор SKU -->
+<dialog id="dlg">
+  <form id="skuForm" method="dialog" class="form">
+    <h2 id="dlgTitle">SKU</h2>
+    <label>Family / SKU<input name="name" required></label>
+    <label>Компания
+      <select name="company"><option>BAT</option><option>JTI</option><option>KT&amp;G</option><option>PMI</option><option>OTHERS</option></select>
+    </label>
+    <label>Сегмент
+      <select name="segment"><option>PREMIUM</option><option>MEDIUM</option><option>LOW</option></select>
+    </label>
+    <label>Цена, KZT / пачка<input name="price" type="number" step="1" required></label>
+    <label>SoM YTD, %<input name="som" type="number" step="0.0001"></label>
+    <label>Изменение, п.п.<input name="change" type="number" step="0.0001"></label>
+    <label>Фото пачки<input name="imageFile" type="file" accept="image/*"></label>
+    <label>…или ссылка / путь (images/xxx.jpg)<input name="image"></label>
+    <img id="preview" class="preview" alt="">
+    <div class="row">
+      <button type="button" id="bDel" class="danger">Удалить</button>
+      <span class="grow"></span>
+      <button type="button" id="bCancel">Отмена</button>
+      <button class="primary" value="ok">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Настройки GitHub -->
+<dialog id="ghDlg">
+  <form id="ghForm" method="dialog" class="form">
+    <h2>Сохранение в репозиторий</h2>
+    <p class="hint">Данные записываются в <code>data/skus.json</code> (и фото в <code>images/</code>) через GitHub API.
+      Нужен fine-grained токен с правом <b>Contents: Read and write</b> на этот репозиторий. Токен хранится только в этом браузере.</p>
+    <label>Владелец/репозиторий<input name="repo" placeholder="ekzotik-inc/SKU_test" required></label>
+    <label>Ветка<input name="branch" placeholder="main" required></label>
+    <label>Токен<input name="token" type="password" required></label>
+    <div class="row"><span class="grow"></span>
+      <button type="button" id="ghCancel">Отмена</button>
+      <button class="primary" value="ok">Сохранить</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
