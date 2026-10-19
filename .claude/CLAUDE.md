@@ -4,6 +4,7 @@ Static site on GitHub Pages (branch `main`, root). No build step, no server.
 
 - `index.html` — markup; `style.css` — styles (light/dark via CSS vars on `:root[data-theme]`); `app.js` — all logic
 - Data: `data/board.json` (`{period, skus:[{id,name,brand,format,segment,price,company,som(%),change(pp),image,active,order,notes}]}`; Excel import/export uses SKU_Master columns (SoM_YTD as fraction)), photos in `images/`
+- Excel import also pulls pictures (in-cell richData and floating drawings, via JSZip `excelImages`), trims margins and attaches them by row; a file with only name + picture columns just adds photos to existing SKUs
 - Companies: BAT, JTI, KT&G, PMI, OTHERS. Segments: PREMIUM, MEDIUM, LOW
 - Login is a client-side SHA-256 check of `login:password` (`AUTH_HASH` in app.js) — UI gate only
 - UI text is in Russian

@@ -240,15 +240,34 @@ form.addEventListener('submit', () => {
   touch();
 });
 
-// уменьшаем фото до ~240px по высоте, чтобы репозиторий не разрастался
+// обрезаем пустые (белые/прозрачные) поля и уменьшаем фото до ~240px по высоте,
+// чтобы пачка занимала всю карточку, а репозиторий не разрастался
 function shrinkImage(file) {
   return new Promise((res, rej) => {
     const img = new Image();
     img.onload = () => {
-      const h = Math.min(240, img.height), w = Math.round(img.width * h / img.height);
-      const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(img.src);
+      const k = Math.min(1, 1200 / Math.max(img.width, img.height));
+      const sw = Math.round(img.width * k), sh = Math.round(img.height * k);
+      const src = Object.assign(document.createElement('canvas'), { width: sw, height: sh });
+      const sctx = src.getContext('2d');
+      sctx.drawImage(img, 0, 0, sw, sh);
+      const px = sctx.getImageData(0, 0, sw, sh).data;
+      let x0 = sw, y0 = sh, x1 = -1, y1 = -1;
+      for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) {
+        const i = (y * sw + x) * 4;
+        if (px[i + 3] > 16 && (px[i] < 240 || px[i + 1] < 240 || px[i + 2] < 240)) {
+          if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+      }
+      if (x1 < 0) { x0 = 0; y0 = 0; x1 = sw - 1; y1 = sh - 1; }
+      const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+      const h = Math.min(240, ch), w = Math.round(cw * h / ch);
+      const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; // прозрачный фон PNG иначе станет чёрным в JPEG
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(src, x0, y0, cw, ch, 0, 0, w, h);
       res(c.toDataURL('image/jpeg', 0.85));
     };
     img.onerror = rej;
@@ -269,19 +288,97 @@ const MATCH = {
   notes: /^notes?$|примеч|коммент/i, image: /photo_url|^photo|фото/i,
 };
 
+// Картинки из Excel: «рисунок в ячейке» (richData) и обычные плавающие рисунки.
+// Возвращает { [номер строки Excel]: Blob } для листа sheetName.
+async function excelImages(buf, sheetName) {
+  let zip;
+  try { zip = await JSZip.loadAsync(buf); } catch { return {}; }
+  const xml = async path => {
+    const f = zip.file(path);
+    return f ? new DOMParser().parseFromString(await f.async('text'), 'application/xml') : null;
+  };
+  const tags = (doc, name) => doc ? [...doc.getElementsByTagNameNS('*', name)] : [];
+  const rid = el => el.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') ||
+    el.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed');
+  const rels = async path => Object.fromEntries(tags(await xml(path), 'Relationship').map(r => [r.getAttribute('Id'), r.getAttribute('Target')]));
+  const resolve = (base, target) => {
+    if (target.startsWith('/')) return target.slice(1);
+    const parts = base.split('/').slice(0, -1);
+    for (const p of target.split('/')) p === '..' ? parts.pop() : parts.push(p);
+    return parts.join('/');
+  };
+  const blob = path => zip.file(path)?.async('blob');
+
+  // путь к XML нужного листа
+  const wbRels = await rels('xl/_rels/workbook.xml.rels');
+  const sheetEl = tags(await xml('xl/workbook.xml'), 'sheet').find(e => e.getAttribute('name') === sheetName);
+  if (!sheetEl) return {};
+  const sheetPath = resolve('xl/workbook.xml', wbRels[rid(sheetEl)]);
+  const sheetDoc = await xml(sheetPath);
+  const out = {};
+
+  // 1) рисунки в ячейках: c@vm → metadata → rich value → richValueRel → картинка
+  const rvb = tags(await xml('xl/metadata.xml'), 'rvb').map(e => +e.getAttribute('i'));
+  const rv = tags(await xml('xl/richData/rdrichvalue.xml'), 'rv').map(e => +tags(e, 'v')[0]?.textContent);
+  const rvRel = tags(await xml('xl/richData/richValueRel.xml'), 'rel').map(rid);
+  const rvRelTargets = await rels('xl/richData/_rels/richValueRel.xml.rels');
+  for (const c of tags(sheetDoc, 'c').filter(c => c.hasAttribute('vm'))) {
+    const relIdx = rv[rvb[+c.getAttribute('vm') - 1]];
+    const target = rvRelTargets[rvRel[relIdx]];
+    if (target) out[+c.getAttribute('r').replace(/\D/g, '')] ??= await blob(resolve('xl/richData/richValueRel.xml', target));
+  }
+
+  // 2) плавающие рисунки: привязываем к строке левого верхнего угла
+  const sheetRels = await rels(sheetPath.replace(/([^/]+)$/, '_rels/$1.rels'));
+  for (const d of tags(sheetDoc, 'drawing')) {
+    const dPath = resolve(sheetPath, sheetRels[rid(d)]);
+    const dRels = await rels(dPath.replace(/([^/]+)$/, '_rels/$1.rels'));
+    for (const anchor of [...tags(await xml(dPath), 'twoCellAnchor'), ...tags(await xml(dPath), 'oneCellAnchor')]) {
+      const row = +tags(tags(anchor, 'from')[0], 'row')[0]?.textContent + 1;
+      const pic = tags(anchor, 'blip')[0];
+      if (row && pic && dRels[rid(pic)]) out[row] ??= await blob(resolve(dPath, dRels[rid(pic)]));
+    }
+  }
+  for (const k in out) if (!out[k]) delete out[k];
+  return out;
+}
+
 $('#bImport').onclick = () => $('#fileXlsx').click();
 $('#fileXlsx').onchange = async e => {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
-  const wb = XLSX.read(await f.arrayBuffer());
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames.find(n => /sku/i.test(n)) || wb.SheetNames[0]], { defval: '' });
+  const buf = await f.arrayBuffer();
+  const wb = XLSX.read(buf);
+  const sheetName = wb.SheetNames.find(n => /sku/i.test(n)) || wb.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '' });
+  setStatus('Ищу картинки в файле…', true);
+  const pics = await excelImages(buf, sheetName);
+  // __rowNum__ — номер строки в листе (с 0), картинки пронумерованы с 1
+  const picFor = async r => pics[r.__rowNum__ + 1] ? shrinkImage(pics[r.__rowNum__ + 1]) : '';
   if (!rows.length) return alert('Лист пуст');
   const headers = Object.keys(rows[0]);
   const map = Object.fromEntries(Object.entries(MATCH).map(([k, re]) => [k, headers.find(h => re.test(h.trim()))]));
+  // файл только с названиями и картинками — просто добавляем фото к существующим SKU
+  if (map.name && !map.price && Object.keys(pics).length) {
+    let n = 0, miss = [];
+    for (const r of rows) {
+      const name = String(r[map.name]).trim().toLowerCase();
+      const img = await picFor(r);
+      if (!name || !img) continue;
+      const hit = state.skus.filter(s => s.name.toLowerCase() === name);
+      hit.forEach(s => { s.image = img; });
+      hit.length ? n++ : miss.push(r[map.name]);
+    }
+    touch();
+    setStatus(`Фото добавлено: ${n}` + (miss.length ? `. Не найдены SKU: ${miss.join(', ')}` : ''), !!miss.length);
+    return;
+  }
   if (!map.name || !map.price) return alert('Не найдены колонки с названием SKU и ценой.\nОжидаются: ' + COLS.map(c => c[1]).join(', '));
   const val = (r, k) => map[k] ? r[map[k]] : '';
-  let imported = rows.filter(r => String(val(r, 'name')).trim() && Number(val(r, 'price'))).map(r => {
+  const okRows = rows.filter(r => String(val(r, 'name')).trim() && Number(val(r, 'price')));
+  const rowPics = await Promise.all(okRows.map(picFor));
+  let imported = okRows.map((r, i) => {
     const c = String(val(r, 'company')).trim().toUpperCase().replace(/^KTG$/, 'KT&G');
     const order = val(r, 'order');
     const s = {
@@ -292,6 +389,7 @@ $('#fileXlsx').onchange = async e => {
       order: order === '' ? null : Number(order),
     };
     for (const k of ['brand', 'format', 'notes', 'image']) if (String(val(r, k)).trim()) s[k] = String(val(r, k)).trim();
+    if (rowPics[i]) s.image = rowPics[i];
     return s;
   });
   if (!imported.length) return alert('Не найдено строк с названием и ценой. Если в файле формулы со ссылками на другую книгу — откройте его в Excel, пересчитайте и сохраните.');
