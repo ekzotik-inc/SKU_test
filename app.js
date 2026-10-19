@@ -65,25 +65,54 @@ function normalize(d) {
 }
 
 function touch() { dirty = true; store.set(DRAFT_KEY, state); render(); }
-function setStatus(t) { $('#status').textContent = t; }
+let toastTimer;
+function setStatus(t, sticky) {
+  $('#status').textContent = t;
+  clearTimeout(toastTimer);
+  if (!sticky) toastTimer = setTimeout(() => { $('#status').textContent = ''; }, 4000);
+}
+// закрываем меню после выбора пункта или клика мимо
+document.addEventListener('click', e => {
+  const m = $('.menu');
+  if (m.open && (!m.contains(e.target) || e.target.closest('.menu-list button'))) m.open = false;
+});
 
 // ---------- борд ----------
 SEGMENTS.forEach(s => $('#fSeg').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
 $('#search').oninput = render;
-$('#fSeg').onchange = render;
 $('#period').onchange = e => { state.period = e.target.value; touch(); };
+
+const colorVar = c => `--c:var(--${cls(c)})`;
+
+function renderTabs() {
+  const cur = $('#fSeg').value;
+  $('#segTabs').innerHTML = ['', ...SEGMENTS].map(s =>
+    `<button data-seg="${s}" class="${s === cur ? 'on' : ''}">${s ? s.charAt(0) + s.slice(1).toLowerCase() : 'Все'}</button>`).join('');
+}
+$('#segTabs').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  $('#fSeg').value = b.dataset.seg;
+  render();
+};
 
 function render() {
   $('#period').value = state.period;
+  renderTabs();
   const q = $('#search').value.trim().toLowerCase();
   const fseg = $('#fSeg').value;
   const list = state.skus.filter(s => (!q || s.name.toLowerCase().includes(q)) && (!fseg || s.segment === fseg));
 
-  const totals = Object.fromEntries(COMPANIES.map(c => [c, 0]));
-  state.skus.forEach(s => totals[s.company] += s.som);
+  const totals = Object.fromEntries(COMPANIES.map(c => [c, { som: 0, n: 0 }]));
+  state.skus.forEach(s => { totals[s.company].som += s.som; totals[s.company].n++; });
+  const max = Math.max(1, ...COMPANIES.map(c => totals[c].som));
+  $('#kpi').innerHTML = COMPANIES.map(c => `<div class="chip" style="${colorVar(c)}">
+    <span class="dot" style="background:var(--c)"></span>
+    <div style="flex:1"><small>${esc(c)} · ${totals[c].n} SKU</small><b>${totals[c].som.toFixed(1)}%</b>
+    <div class="meter"><i style="width:${totals[c].som / max * 100}%;background:var(--c)"></i></div></div></div>`).join('');
 
-  let html = '<table class="bb"><thead><tr><th>Сегм.</th><th>KZT / пачка</th>' +
-    COMPANIES.map(c => `<th class="col-${cls(c)}">${esc(c)}<small>SoM ${totals[c].toFixed(1)}%</small></th>`).join('') +
+  let html = '<table class="bb"><thead><tr><th></th><th style="text-align:right">KZT</th>' +
+    COMPANIES.map(c => `<th class="co" style="${colorVar(c)}">${esc(c)}<small>SoM ${totals[c].som.toFixed(1)}%</small></th>`).join('') +
     '</tr></thead><tbody>';
 
   for (const seg of SEGMENTS) {
@@ -91,13 +120,14 @@ function render() {
     const prices = [...new Set(list.filter(s => s.segment === seg).map(s => s.price))].sort((a, b) => b - a);
     if (!prices.length) continue;
     prices.forEach((p, i) => {
-      html += '<tr>';
-      if (i === 0) html += `<td class="seg seg-${seg}" rowspan="${prices.length}">${seg}</td>`;
-      html += `<td class="price">${p.toLocaleString('ru-RU')}</td>`;
+      const n = list.filter(s => s.segment === seg && s.price === p).length;
+      html += `<tr class="${i === 0 ? 'seg-start' : ''}">`;
+      if (i === 0) html += `<td class="seg" style="--c:var(--${seg})" rowspan="${prices.length}"><span>${seg}</span></td>`;
+      html += `<td class="price">${p.toLocaleString('ru-RU')}<small>${n} SKU</small></td>`;
       for (const c of COMPANIES) {
         const items = list.filter(s => s.segment === seg && s.price === p && s.company === c)
           .sort((a, b) => b.som - a.som);
-        html += `<td class="col-${cls(c)}"><div class="cell" data-seg="${seg}" data-price="${p}" data-company="${esc(c)}">` +
+        html += `<td style="${colorVar(c)}"><div class="cell" data-seg="${seg}" data-price="${p}" data-company="${esc(c)}">` +
           items.map(card).join('') +
           `<button class="add-here" title="Добавить SKU сюда">+</button></div></td>`;
       }
@@ -105,16 +135,16 @@ function render() {
     });
   }
   html += '</tbody></table>';
-  if (!list.length) html = '<p>Нет SKU. Нажмите «+ SKU» или «Импорт Excel».</p>';
+  if (!list.length) html = '<div class="empty">Ничего не найдено. Нажмите «＋ SKU» или импортируйте Excel.</div>';
   $('#board').innerHTML = html;
-  setStatus(`${state.skus.length} SKU` + (dirty ? ' · есть несохранённые изменения (черновик в браузере)' : ''));
+  if (dirty) setStatus('Есть несохранённые изменения — нажмите «Сохранить»', true);
 }
 
 function card(s) {
-  const ch = s.change ? `<span class="${s.change > 0 ? 'up' : 'dn'}">${s.change > 0 ? '▲' : '▼'}${Math.abs(s.change).toFixed(2)}</span>` : '';
+  const ch = Math.abs(s.change) >= 0.005 ? `<span class="${s.change > 0 ? 'up' : 'dn'}">${s.change > 0 ? '▲' : '▼'}${Math.abs(s.change).toFixed(2)}</span>` : '';
   const img = s.image ? `<img src="${esc(s.image)}" alt="" loading="lazy">` : `<div class="ph">${esc(s.name.charAt(0))}</div>`;
-  return `<div class="sku" draggable="true" data-id="${s.id}" title="${esc(s.name)} · ${s.price} KZT">${img}` +
-    `<div class="nm">${esc(s.name)}</div><div class="som">${s.som.toFixed(2)}% ${ch}</div></div>`;
+  return `<div class="sku" draggable="true" data-id="${s.id}" style="${colorVar(s.company)}" title="${esc(s.name)} · ${s.price} KZT · SoM ${s.som}%">${img}` +
+    `<div class="nm">${esc(s.name)}</div><div class="som"><b>${s.som.toFixed(2)}%</b>${ch}</div></div>`;
 }
 
 // клики и перетаскивание
@@ -293,12 +323,12 @@ async function saveToGitHub(cfg) {
   try {
     // загруженные фото выносим в images/ отдельными файлами
     for (const s of state.skus.filter(s => s.image.startsWith('data:image'))) {
-      setStatus(`Загрузка фото: ${s.name}…`);
+      setStatus(`Загрузка фото: ${s.name}…`, true);
       const path = `images/sku-${s.id}-${Date.now()}.jpg`;
       await putFile(cfg, path, s.image.split(',')[1], `Фото SKU: ${s.name}`);
       s.image = path;
     }
-    setStatus('Сохранение data/board.json…');
+    setStatus('Сохранение data/board.json…', true);
     await putFile(cfg, 'data/board.json', utf8b64(JSON.stringify(state, null, 1) + '\n'), 'Обновление Brand Board');
     dirty = false;
     store.del(DRAFT_KEY);

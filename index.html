@@ -5,41 +5,57 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CC Brand Board</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- Вход -->
 <div id="login" class="login">
-  <form id="loginForm" class="card">
+  <form id="loginForm" class="login-card">
+    <div class="logo">BB</div>
     <h1>CC Brand Board</h1>
+    <p class="sub">Цены и доли рынка SKU</p>
     <label>Логин<input id="lUser" autocomplete="username" required></label>
     <label>Пароль<input id="lPass" type="password" autocomplete="current-password" required></label>
     <div id="lErr" class="err"></div>
-    <button class="primary">Войти</button>
+    <button class="primary big">Войти</button>
   </form>
 </div>
 
 <!-- Приложение -->
 <div id="app" hidden>
   <header class="top">
-    <h1 id="title">CC Brand Board</h1>
-    <input id="period" class="period" title="Период (заголовок борда)">
-    <div class="tools">
-      <input id="search" placeholder="Поиск SKU…">
-      <select id="fSeg"><option value="">Все сегменты</option></select>
-      <button id="bAdd" class="primary">+ SKU</button>
-      <button id="bImport">Импорт Excel</button>
-      <button id="bExport">Экспорт Excel</button>
-      <button id="bJson">Скачать skus.json</button>
-      <button id="bSave">Сохранить в GitHub</button>
-      <button id="bPrint">Печать / PDF</button>
-      <button id="bLogout">Выход</button>
-      <input id="fileXlsx" type="file" accept=".xlsx,.xls,.csv" hidden>
+    <div class="bar">
+      <div class="brand"><div class="logo sm">BB</div><div>
+        <h1 id="title">CC Brand Board</h1>
+        <input id="period" class="period" title="Период — нажмите, чтобы изменить">
+      </div></div>
+      <div class="tools">
+        <div class="search"><span>⌕</span><input id="search" placeholder="Поиск SKU"></div>
+        <div id="segTabs" class="tabs"></div>
+        <button id="bAdd" class="primary">＋ SKU</button>
+        <button id="bSave" class="accent">⇪ Сохранить</button>
+        <details class="menu">
+          <summary class="btn">⋯</summary>
+          <div class="menu-list">
+            <button id="bImport">⤓ Импорт Excel</button>
+            <button id="bExport">⤒ Экспорт Excel</button>
+            <button id="bJson">{ } Скачать board.json</button>
+            <button id="bPrint">⎙ Печать / PDF</button>
+            <hr>
+            <button id="bLogout">⎋ Выход</button>
+          </div>
+        </details>
+        <select id="fSeg" hidden><option value="">Все</option></select>
+        <input id="fileXlsx" type="file" accept=".xlsx,.xls,.csv" hidden>
+      </div>
     </div>
-    <div id="status" class="status"></div>
+    <div id="kpi" class="kpi"></div>
   </header>
   <main id="board" class="board"></main>
+  <div id="status" class="toast"></div>
 </div>
 
 <!-- Редактор SKU -->
