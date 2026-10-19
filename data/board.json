@@ -1,0 +1,965 @@
+{
+ "period": "Retail Prices Dec'25, Market Shares YTD Dec'25",
+ "skus": [
+  {
+   "id": 1,
+   "name": "Parliament MNL",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "PMI",
+   "som": 6.257,
+   "change": -0.0705,
+   "image": ""
+  },
+  {
+   "id": 2,
+   "name": "PARLIAMENT MANHATTAN BRONZE",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "PMI",
+   "som": 0.1325,
+   "change": 0.1325,
+   "image": ""
+  },
+  {
+   "id": 3,
+   "name": "PARLIAMENT MANHATTAN RED",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "PMI",
+   "som": 0.1341,
+   "change": 0.1341,
+   "image": ""
+  },
+  {
+   "id": 4,
+   "name": "Marlboro MNL",
+   "segment": "PREMIUM",
+   "price": 1250,
+   "company": "PMI",
+   "som": 0.5486,
+   "change": 0.1943,
+   "image": ""
+  },
+  {
+   "id": 5,
+   "name": "Parliament Reserve",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "PMI",
+   "som": 4.4027,
+   "change": 0.0547,
+   "image": ""
+  },
+  {
+   "id": 6,
+   "name": "Parliament SSL",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "PMI",
+   "som": 2.0505,
+   "change": -0.2494,
+   "image": ""
+  },
+  {
+   "id": 7,
+   "name": "Parliament SOHO NYC",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "PMI",
+   "som": 0.6761,
+   "change": -0.0554,
+   "image": ""
+  },
+  {
+   "id": 8,
+   "name": "TEREA",
+   "segment": "MEDIUM",
+   "price": 1210,
+   "company": "PMI",
+   "som": 0,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 9,
+   "name": "Marlboro Touch",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 4.4846,
+   "change": -0.4582,
+   "image": ""
+  },
+  {
+   "id": 10,
+   "name": "MARLBORO DOUBLE",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 1.2231,
+   "change": -0.2232,
+   "image": ""
+  },
+  {
+   "id": 11,
+   "name": "Marlboro Red Special",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 0.3788,
+   "change": 0.1971,
+   "image": ""
+  },
+  {
+   "id": 12,
+   "name": "Marlboro Gold Special",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 0.3277,
+   "change": 0.1589,
+   "image": ""
+  },
+  {
+   "id": 13,
+   "name": "Marlboro Vista+ Sunray",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 0.1322,
+   "change": 0.1322,
+   "image": ""
+  },
+  {
+   "id": 14,
+   "name": "Marlboro Vista+ Midnight",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "PMI",
+   "som": 0.1458,
+   "change": 0.1458,
+   "image": ""
+  },
+  {
+   "id": 15,
+   "name": "Delia",
+   "segment": "MEDIUM",
+   "price": 1160,
+   "company": "PMI",
+   "som": 0,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 16,
+   "name": "L&M Lounge",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 5.9568,
+   "change": -0.6554,
+   "image": ""
+  },
+  {
+   "id": 17,
+   "name": "L&M Loft Regular",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 1.3166,
+   "change": -0.0431,
+   "image": ""
+  },
+  {
+   "id": 18,
+   "name": "L&M Loft Caps",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 2.3565,
+   "change": -0.4834,
+   "image": ""
+  },
+  {
+   "id": 19,
+   "name": "L&M Toscana Lounge",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 0.5901,
+   "change": 0.5901,
+   "image": ""
+  },
+  {
+   "id": 20,
+   "name": "L&M Riviera Lounge",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 0.1511,
+   "change": 0.1511,
+   "image": ""
+  },
+  {
+   "id": 21,
+   "name": "L&M La Palma Lounge",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 0.1529,
+   "change": 0.1529,
+   "image": ""
+  },
+  {
+   "id": 22,
+   "name": "PHILIP MORRIS MNL",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 2.1425,
+   "change": -0.351,
+   "image": ""
+  },
+  {
+   "id": 23,
+   "name": "PHILIP MORRIS COMPACT",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "PMI",
+   "som": 0.3299,
+   "change": -0.0711,
+   "image": ""
+  },
+  {
+   "id": 24,
+   "name": "BLACK EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 1.4118,
+   "change": -0.0486,
+   "image": ""
+  },
+  {
+   "id": 25,
+   "name": "GOLD EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 1.4786,
+   "change": 0.1944,
+   "image": ""
+  },
+  {
+   "id": 26,
+   "name": "RED EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 3.1686,
+   "change": 0.4591,
+   "image": ""
+  },
+  {
+   "id": 27,
+   "name": "BRONZE EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 0.9193,
+   "change": 0.0561,
+   "image": ""
+  },
+  {
+   "id": 28,
+   "name": "ROYAL EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 1.0169,
+   "change": 0.1167,
+   "image": ""
+  },
+  {
+   "id": 29,
+   "name": "GRAND EDITION",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 0.1732,
+   "change": -0.023,
+   "image": ""
+  },
+  {
+   "id": 30,
+   "name": "ENIGMA Edition",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 0.2092,
+   "change": 0.2092,
+   "image": ""
+  },
+  {
+   "id": 31,
+   "name": "ROUGE Edition",
+   "segment": "PREMIUM",
+   "price": 1310,
+   "company": "JTI",
+   "som": 0.0363,
+   "change": 0.0363,
+   "image": ""
+  },
+  {
+   "id": 32,
+   "name": "BLUE EDITION KS",
+   "segment": "PREMIUM",
+   "price": 1270,
+   "company": "JTI",
+   "som": 0.4574,
+   "change": 0.0382,
+   "image": ""
+  },
+  {
+   "id": 33,
+   "name": "BLUE EDITION 100'S",
+   "segment": "PREMIUM",
+   "price": 1270,
+   "company": "JTI",
+   "som": 1.1594,
+   "change": 0.0016,
+   "image": ""
+  },
+  {
+   "id": 34,
+   "name": "EMPEROR EDITION",
+   "segment": "PREMIUM",
+   "price": 1270,
+   "company": "JTI",
+   "som": 0.2527,
+   "change": 0.2466,
+   "image": ""
+  },
+  {
+   "id": 35,
+   "name": "Sobranie",
+   "segment": "PREMIUM",
+   "price": 1260,
+   "company": "JTI",
+   "som": 0,
+   "change": -0.0005,
+   "image": ""
+  },
+  {
+   "id": 36,
+   "name": "Camel Aroma Bronze",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "JTI",
+   "som": 0.112,
+   "change": 0.112,
+   "image": ""
+  },
+  {
+   "id": 37,
+   "name": "Camel Aroma Red",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "JTI",
+   "som": 0.1836,
+   "change": 0.1836,
+   "image": ""
+  },
+  {
+   "id": 38,
+   "name": "Camel MNL",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "JTI",
+   "som": 1.8761,
+   "change": -1.1239,
+   "image": ""
+  },
+  {
+   "id": 39,
+   "name": "WINSTON STICKS",
+   "segment": "MEDIUM",
+   "price": 1210,
+   "company": "JTI",
+   "som": 0,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 40,
+   "name": "WINSTON 100 SSL",
+   "segment": "MEDIUM",
+   "price": 1190,
+   "company": "JTI",
+   "som": 2.1,
+   "change": -0.1,
+   "image": ""
+  },
+  {
+   "id": 41,
+   "name": "WINSTON MNL",
+   "segment": "MEDIUM",
+   "price": 1190,
+   "company": "JTI",
+   "som": 2.05,
+   "change": -0.07,
+   "image": ""
+  },
+  {
+   "id": 42,
+   "name": "WINSTON XSTYLE",
+   "segment": "MEDIUM",
+   "price": 1190,
+   "company": "JTI",
+   "som": 6.2913,
+   "change": -0.9188,
+   "image": ""
+  },
+  {
+   "id": 43,
+   "name": "CASTER+ 100s",
+   "segment": "MEDIUM",
+   "price": 1190,
+   "company": "JTI",
+   "som": 0.0766,
+   "change": -0.0582,
+   "image": ""
+  },
+  {
+   "id": 44,
+   "name": "CASTER+",
+   "segment": "MEDIUM",
+   "price": 1190,
+   "company": "JTI",
+   "som": 0.0766,
+   "change": -0.0582,
+   "image": ""
+  },
+  {
+   "id": 45,
+   "name": "WINSTON COMPACT",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 11.91,
+   "change": -0.02,
+   "image": ""
+  },
+  {
+   "id": 46,
+   "name": "WINSTON COMPACT AROMA BROWN KS DSP 20 SLI",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.0678,
+   "change": 0.0678,
+   "image": ""
+  },
+  {
+   "id": 47,
+   "name": "WINSTON COMPACT AROMA RUBY KS DSP 20 SLI",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.102,
+   "change": 0.102,
+   "image": ""
+  },
+  {
+   "id": 48,
+   "name": "WINSTON COMPACT 100S",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 1.9922,
+   "change": 0.3571,
+   "image": ""
+  },
+  {
+   "id": 49,
+   "name": "WINSTON SSL GREEN",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.1,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 50,
+   "name": "WINSTON SSL VIOLET",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.1,
+   "change": -0.1,
+   "image": ""
+  },
+  {
+   "id": 51,
+   "name": "WINSTON SSL SUMMER MIX",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.4,
+   "change": 0.2,
+   "image": ""
+  },
+  {
+   "id": 52,
+   "name": "WINSTON SSL EXPAND BLUE",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.3,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 53,
+   "name": "WINSTON SSL PURPLE",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 0.5,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 54,
+   "name": "SOVEREIGN",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "JTI",
+   "som": 1.5,
+   "change": -0.3,
+   "image": ""
+  },
+  {
+   "id": 55,
+   "name": "LD",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "JTI",
+   "som": 9.9,
+   "change": -1.5,
+   "image": ""
+  },
+  {
+   "id": 56,
+   "name": "KISS",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "JTI",
+   "som": 0.633,
+   "change": -0.0348,
+   "image": ""
+  },
+  {
+   "id": 57,
+   "name": "BOHEM SIGNATURE BLACK LABEL KS BOX 20",
+   "segment": "PREMIUM",
+   "price": 1340,
+   "company": "KT&G",
+   "som": 0.0483,
+   "change": 0.0035,
+   "image": ""
+  },
+  {
+   "id": 58,
+   "name": "BOHEM SIGNATURE BLACK LABEL 100 BOX 20 SSL",
+   "segment": "PREMIUM",
+   "price": 1340,
+   "company": "KT&G",
+   "som": 0.0481,
+   "change": 0.016,
+   "image": ""
+  },
+  {
+   "id": 59,
+   "name": "BOHEM CAVANA",
+   "segment": "PREMIUM",
+   "price": 1300,
+   "company": "KT&G",
+   "som": 0.0245,
+   "change": 0.0245,
+   "image": ""
+  },
+  {
+   "id": 60,
+   "name": "Bohem Cavana Red",
+   "segment": "PREMIUM",
+   "price": 1300,
+   "company": "KT&G",
+   "som": 0.0111,
+   "change": 0.0111,
+   "image": ""
+  },
+  {
+   "id": 61,
+   "name": "Bohem Cavana Brown",
+   "segment": "PREMIUM",
+   "price": 1300,
+   "company": "KT&G",
+   "som": 0.0067,
+   "change": 0.0067,
+   "image": ""
+  },
+  {
+   "id": 62,
+   "name": "ESSE GOLDEN LEAF",
+   "segment": "PREMIUM",
+   "price": 1280,
+   "company": "KT&G",
+   "som": 0.1179,
+   "change": 0.0217,
+   "image": ""
+  },
+  {
+   "id": 63,
+   "name": "ESSE SPECIAL GOLD",
+   "segment": "PREMIUM",
+   "price": 1280,
+   "company": "KT&G",
+   "som": 0.1272,
+   "change": -0.002,
+   "image": ""
+  },
+  {
+   "id": 64,
+   "name": "ESSE EXCHANGE DOUBLE",
+   "segment": "PREMIUM",
+   "price": 1260,
+   "company": "KT&G",
+   "som": 0.1727,
+   "change": 0.0187,
+   "image": ""
+  },
+  {
+   "id": 65,
+   "name": "ESSE EXCHANGE DOUBLE W",
+   "segment": "PREMIUM",
+   "price": 1260,
+   "company": "KT&G",
+   "som": 0.1135,
+   "change": 0.0142,
+   "image": ""
+  },
+  {
+   "id": 66,
+   "name": "ESSE SENSE SANTORINI 100",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.2063,
+   "change": 0.0476,
+   "image": ""
+  },
+  {
+   "id": 67,
+   "name": "ESSE SENSE SANTORINI KS SLI",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.1,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 68,
+   "name": "ESSE SENSE HIMALAYA 100 SSL",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.8,
+   "change": 0.1,
+   "image": ""
+  },
+  {
+   "id": 69,
+   "name": "ESSE SENSE HIMALAYA DEMI KS OCT 20 SLI",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.17,
+   "change": 0.0472,
+   "image": ""
+  },
+  {
+   "id": 70,
+   "name": "ESSE SENSE HIMALAYA KS SSL",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.8,
+   "change": 0.1,
+   "image": ""
+  },
+  {
+   "id": 71,
+   "name": "BOHEM LIBRE CLASSIC BLUE KS BOX 20",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.0398,
+   "change": 0.0312,
+   "image": ""
+  },
+  {
+   "id": 72,
+   "name": "BOHEM LIBRE CLASSIC SILVER KS BOX 20",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "KT&G",
+   "som": 0.0383,
+   "change": 0.0309,
+   "image": ""
+  },
+  {
+   "id": 73,
+   "name": "ESSE EXCHANGE",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "KT&G",
+   "som": 5.7,
+   "change": -0.1,
+   "image": ""
+  },
+  {
+   "id": 74,
+   "name": "ESSE COLD BLACK",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "KT&G",
+   "som": 0.5,
+   "change": 0.3,
+   "image": ""
+  },
+  {
+   "id": 75,
+   "name": "ESSE BLUE",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "KT&G",
+   "som": 0.0829,
+   "change": 0.0738,
+   "image": ""
+  },
+  {
+   "id": 76,
+   "name": "ESSE CHANGE B",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "KT&G",
+   "som": 0.0618,
+   "change": 0.052,
+   "image": ""
+  },
+  {
+   "id": 77,
+   "name": "ESSE EXCHANGE COLD GREEN",
+   "segment": "MEDIUM",
+   "price": 1200,
+   "company": "KT&G",
+   "som": 0.1307,
+   "change": 0.1307,
+   "image": ""
+  },
+  {
+   "id": 78,
+   "name": "ESSE MNL",
+   "segment": "MEDIUM",
+   "price": 1180,
+   "company": "KT&G",
+   "som": 0.8,
+   "change": -0.01,
+   "image": ""
+  },
+  {
+   "id": 79,
+   "name": "RAISON PRESSO",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "KT&G",
+   "som": 0.0085,
+   "change": -0.0109,
+   "image": ""
+  },
+  {
+   "id": 80,
+   "name": "RAISON FRENCH BLACK",
+   "segment": "LOW",
+   "price": 1150,
+   "company": "KT&G",
+   "som": 0.0101,
+   "change": -0.0125,
+   "image": ""
+  },
+  {
+   "id": 81,
+   "name": "DUNHILL FINE CUT",
+   "segment": "PREMIUM",
+   "price": 1340,
+   "company": "BAT",
+   "som": 0.7,
+   "change": -0.001,
+   "image": ""
+  },
+  {
+   "id": 82,
+   "name": "DUNHILL GOLDEN COMPACT",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "BAT",
+   "som": 0.0205,
+   "change": -0.0293,
+   "image": ""
+  },
+  {
+   "id": 83,
+   "name": "DUNHILL RUBY AROMA",
+   "segment": "PREMIUM",
+   "price": 1240,
+   "company": "BAT",
+   "som": 0.1561,
+   "change": 0.0359,
+   "image": ""
+  },
+  {
+   "id": 84,
+   "name": "KENT MNL",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.6,
+   "change": -0.1,
+   "image": ""
+  },
+  {
+   "id": 85,
+   "name": "KENT NANOTEK",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 1.65,
+   "change": -0.22,
+   "image": ""
+  },
+  {
+   "id": 86,
+   "name": "KENT NANOFEEL",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.2,
+   "change": -0.01,
+   "image": ""
+  },
+  {
+   "id": 87,
+   "name": "Crystal 7.0",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.54,
+   "change": -0.13,
+   "image": ""
+  },
+  {
+   "id": 88,
+   "name": "KENT FRESH HAZE 100 BOX 20 SSL",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.041,
+   "change": -0.0022,
+   "image": ""
+  },
+  {
+   "id": 89,
+   "name": "KENT SILVER 100 BOX 20 SSL",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.0634,
+   "change": 0.0034,
+   "image": ""
+  },
+  {
+   "id": 90,
+   "name": "KENT VIOLET MIX 100 BOX 20 SSL",
+   "segment": "MEDIUM",
+   "price": 1230,
+   "company": "BAT",
+   "som": 0.0465,
+   "change": -0.0089,
+   "image": ""
+  },
+  {
+   "id": 91,
+   "name": "Rothmans",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "BAT",
+   "som": 1.9,
+   "change": -0.6,
+   "image": ""
+  },
+  {
+   "id": 92,
+   "name": "Lucky Strike",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "BAT",
+   "som": 0.1,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 93,
+   "name": "Davidoff Slims",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "OTHERS",
+   "som": 0,
+   "change": 0,
+   "image": ""
+  },
+  {
+   "id": 94,
+   "name": "Davidoff MNL",
+   "segment": "LOW",
+   "price": 1140,
+   "company": "OTHERS",
+   "som": 0.0262,
+   "change": 0.0199,
+   "image": ""
+  },
+  {
+   "id": 95,
+   "name": "Davidoff Reach",
+   "segment": "LOW",
+   "price": 1170,
+   "company": "OTHERS",
+   "som": 0.0258,
+   "change": 0.0172,
+   "image": ""
+  },
+  {
+   "id": 96,
+   "name": "West Extra",
+   "segment": "LOW",
+   "price": 1060,
+   "company": "OTHERS",
+   "som": 0.1056,
+   "change": 0.0946,
+   "image": ""
+  }
+ ]
+}
